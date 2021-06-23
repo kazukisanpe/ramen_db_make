@@ -7,27 +7,91 @@ import time
 #実行処理時間計測開始
 start = time.time()
 
-# Webページを取得して解析する
-search_pref = "宮城県"
-loop_flg = 1 #loop用フラグ
+#引数を取得
+args = sys.argv
+search_pref = args[1]
+
+if "東京" == search_pref:
+    search_pref = search_pref + "都"
+elif "京都" == search_pref or "大阪" == search_pref:
+    search_pref = search_pref + "府"
+print(search_pref)
+
+#都道府県ローマ字辞書データ
+pref_dic = [
+    ['北海道','hokkaido'],
+    ['青森県','aomori'],
+    ['岩手県','iwate'],
+    ['秋田県','akita'],
+    ['宮城県','miyagi'],
+    ['山形県','yamagata'],
+    ['福島県','fukushima'],
+    ['茨城県','ibaraki'],
+    ['栃木県','tochigi'],
+    ['群馬県','gunma'],
+    ['埼玉県','saitama'],
+    ['千葉県','chiba'],
+    ['東京都','tokyo'],
+    ['神奈川県','kanagawa'],
+    ['新潟県','niigata'],
+    ['富山県','toyama'],
+    ['石川県','ishikawa'],
+    ['福井県','fukui'],
+    ['山梨県','yamanashi'],
+    ['長野県','nagano'],
+    ['岐阜県','gifu'],
+    ['静岡県','shizuoka'],
+    ['愛知県','aichi'],
+    ['滋賀県','shiga'],
+    ['京都府','kyoto'],
+    ['大阪府','osaka'],
+    ['兵庫県','hyogo'],
+    ['奈良県','nara'],
+    ['三重県','mie'],
+    ['和歌山県','wakayama'],
+    ['鳥取県','tottori'],
+    ['島根県','shimane'],
+    ['岡山県','okayama'],
+    ['広島県','hiroshima'],
+    ['山口県','yamaguchi'],
+    ['徳島県','tokushima'],
+    ['香川県','kagawa'],
+    ['愛媛県','ehime'],
+    ['高知県','kochi'],
+    ['福岡県','fukuoka'],
+    ['佐賀県','saga'],
+    ['長崎県','nagasaki'],
+    ['大分県','oita'],
+    ['熊本県','kumamoto'],
+    ['宮崎県','miyazaki'],
+    ['鹿児島県','kagoshima'],
+    ['沖縄県','okinawa']
+    ]
+
+for num in range(len(pref_dic)):
+    if search_pref == pref_dic[num][0]:
+        search_pref = pref_dic[num][1]
+
 page_cnt = 0 #ページカウンター
 cnt = 0 #該当件数
-while loop_flg:    
+while 1:    
     page_cnt = page_cnt + 1
-    load_url = "https://ramendb.supleks.jp/search?page=" + str(page_cnt) + "&state=miyagi&city=&order=point&station-id=0&tags=3"
+    load_url = "https://ramendb.supleks.jp/search?page=" + str(page_cnt) + "&state=" + search_pref + "&city=&order=point&station-id=0&tags=3"
     html = requests.get(load_url)
     soup = BeautifulSoup(html.content, "html.parser")
     elems = soup.find_all(class_ = "info")
-    
-
-    if page_cnt == 3:
+    if len(elems) == 0:
         break
+    print(page_cnt)
+
 
     for num in range(len(elems)):
-        print(elems[num].h4)
+        print(elems[num].h4.text)
+        print("https://ramendb.supleks.jp" + elems[num].h4.a['href'])
+
         '''
         ramen_info = list()
-        cnt = cnt + 1
+        cnt = cnt 1
         ramen_info.append(str(cnt))
         print(elems[num])
         ramen_info.append(elems[num].attrs['href']) #店舗名
