@@ -82,12 +82,58 @@ while 1:
     elems = soup.find_all(class_ = "info")
     if len(elems) == 0:
         break
-    print(page_cnt)
+    print(str(page_cnt) + "ページ目")
 
 
     for num in range(len(elems)):
-        print(elems[num].h4.text)
-        print("https://ramendb.supleks.jp" + elems[num].h4.a['href'])
+        #print(elems[num].h4.text) #店名
+        status_plate_retire = elems[num].find(class_ = "status_plate") #閉店情報取得
+        if status_plate_retire == None:
+            pass
+        else:
+            print(status_plate_retire.text + "しました")
+
+        load_url = "https://ramendb.supleks.jp" + elems[num].h4.a['href'] #詳細ページURL
+        html = requests.get(load_url)
+        soup = BeautifulSoup(html.content, "html.parser")
+        #ramen_photo = soup.find_all(id="shop-head")
+        elems_detail = soup.find_all(id = "data-table") #elemsだとループのレンジ取ってるのでおかしくなる
+        if len(elems) == 0:
+            print("データがありません")
+            break
+
+        for num_detail in range(len(elems_detail)):
+            cnt = cnt + 1 #件数
+            print(str(cnt) + "件目")
+            print("店舗名：" + elems_detail[num_detail].find(itemprop='name').text) #店名
+            #addressに郵便番号、住所、移転先が混じってしまう
+            address = elems_detail[num_detail].find(itemprop='address').text.split(" ")
+            #郵便番号の有無を判定
+            if address[0][0:1] != "〒":
+                address_number = "情報なし"
+                address_place = address[0]
+            else:
+                address_number = address[0]
+                address_place_ = address[1] #address_place_には移転先情報も混じっている可能性あり
+            #移転先情報を"このお店は"で分割
+            moved_or_place = address_place_.split("このお店は")
+            #移転先情報の有無を判定
+            if len(moved_or_place) == 1:
+                address_place = moved_or_place[0] #住所のみ
+                moved_info = ""
+                moved_flg = 0
+            else:
+                address_place = moved_or_place[0] #住所
+                moved_info = moved_or_place[1] #移転先
+                moved_flg = 1
+
+            print("営業時間：" + "まだ取得できてません許してください")
+            print("郵便番号：" + address_number)
+            print("住所：" + address_place)
+            if moved_flg == 1: 
+                print("移転情報：" + moved_info)
+            print("電話番号：" + elems_detail[num_detail].find(itemprop='telephone').text)
+            print("")
 
         '''
         ramen_info = list()
