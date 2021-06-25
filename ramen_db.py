@@ -127,13 +127,13 @@ while 1:
                             str_operetion_time_after.append(str_operetion_time_list[num])
                 else:
                     pass
-            print("店舗名　：" + elems_detail[num_detail].find(itemprop='name').text) #店名
             #addressに郵便番号、住所、移転先が混じってしまう
             address = elems_detail[num_detail].find(itemprop='address').text.split(" ")
             #郵便番号の有無を判定
             if address[0][0:1] != "〒":
                 address_number = "情報なし"
                 address_place_ = address[0]
+                #郵便番号が無い状態で移転情報がある場合
                 if "このお店は" in address_place_:
                     address_place = address_place_.split("このお店は")[0]
                     moved_info = address_place_.split("このお店は")[1]
@@ -142,6 +142,7 @@ while 1:
                     address_place = address_place_
                     moved_flg = 0
             else:
+                #郵便番号がある場合
                 address_number = address[0]
                 address_place_ = address[1] #address_place_には移転先情報も混じっている可能性あり
                 #移転先情報を"このお店は"で分割
@@ -156,15 +157,16 @@ while 1:
                     moved_info = moved_or_place[1] #移転先
                     moved_flg = 1
 
-            print("営業時間：" + str_operetion_time)
+            print("店舗名　：" + elems_detail[num_detail].find(itemprop='name').text) #店名
+            print("営業時間：" + str_operetion_time) #営業時間
             if operetion_time_line_cnt != 0:
                 for num in range(len(str_operetion_time_after)):
-                    print("　　　　：" + str_operetion_time_after[num])
-            print("郵便番号：" + address_number)
-            print("住所　　：" + address_place)
+                    print("　　　　：" + str_operetion_time_after[num]) #営業時間の二行目以降
+            print("郵便番号：" + address_number) #郵便番号
+            print("住所　　：" + address_place) #住所
             if moved_flg == 1: 
-                print("移転情報：" + moved_info)
-            print("電話番号：" + elems_detail[num_detail].find(itemprop='telephone').text)
+                print("移転情報：" + moved_info) #移転情報
+            print("電話番号：" + elems_detail[num_detail].find(itemprop='telephone').text) #電話番号
             print("")
 
         '''
