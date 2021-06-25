@@ -74,7 +74,8 @@ for num in range(len(pref_dic)):
 
 page_cnt = 0 #ページカウンター
 cnt = 0 #該当件数
-while 1:    
+while 1:
+    operetion_time_line_cnt = 0
     page_cnt = page_cnt + 1
     load_url = "https://ramendb.supleks.jp/search?page=" + str(page_cnt) + "&state=" + search_pref + "&city=&order=point&station-id=0&tags=3"
     html = requests.get(load_url)
@@ -105,31 +106,62 @@ while 1:
         for num_detail in range(len(elems_detail)):
             cnt = cnt + 1 #件数
             print(str(cnt) + "件目")
-            print("店舗名：" + elems_detail[num_detail].find(itemprop='name').text) #店名
+            #時間のフォーマットが含まれていたら取得
+            str_operetion_time_ = elems_detail[num_detail].find_all('td')[3].text
+            pattern = r'\d\d:\d\d'
+            result = re.search(pattern, str_operetion_time_)
+            if result == None:
+                str_operetion_time = "不明"
+            else:
+                str_operetion_time_list = str_operetion_time_.split("\n")
+                str_operetion_time = str_operetion_time_list[0]
+                #営業時間が複数行あるとき
+                str_operetion_time_after = list()
+                if len(str_operetion_time_list) > 1:
+                    for num in range(len(str_operetion_time_list)):
+                        if num == 0:
+                            pass
+                        else:
+                            #営業時間の複数行分
+                            operetion_time_line_cnt = operetion_time_line_cnt + 1
+                            str_operetion_time_after.append(str_operetion_time_list[num])
+                else:
+                    pass
+            print("店舗名　：" + elems_detail[num_detail].find(itemprop='name').text) #店名
             #addressに郵便番号、住所、移転先が混じってしまう
             address = elems_detail[num_detail].find(itemprop='address').text.split(" ")
             #郵便番号の有無を判定
             if address[0][0:1] != "〒":
                 address_number = "情報なし"
-                address_place = address[0]
+                address_place_ = address[0]
+                if "このお店は" in address_place_:
+                    address_place = address_place_.split("このお店は")[0]
+                    moved_info = address_place_.split("このお店は")[1]
+                    moved_flg = 1
+                else:
+                    address_place = address_place_
+                    moved_flg = 0
             else:
                 address_number = address[0]
                 address_place_ = address[1] #address_place_には移転先情報も混じっている可能性あり
-            #移転先情報を"このお店は"で分割
-            moved_or_place = address_place_.split("このお店は")
-            #移転先情報の有無を判定
-            if len(moved_or_place) == 1:
-                address_place = moved_or_place[0] #住所のみ
-                moved_info = ""
-                moved_flg = 0
-            else:
-                address_place = moved_or_place[0] #住所
-                moved_info = moved_or_place[1] #移転先
-                moved_flg = 1
+                #移転先情報を"このお店は"で分割
+                moved_or_place = address_place_.split("このお店は")
+                #移転先情報の有無を判定
+                if len(moved_or_place) == 1:
+                    address_place = moved_or_place[0] #住所のみ
+                    moved_info = ""
+                    moved_flg = 0
+                else:
+                    address_place = moved_or_place[0] #住所
+                    moved_info = moved_or_place[1] #移転先
+                    moved_flg = 1
 
-            print("営業時間：" + "まだ取得できてません許してください")
+            print("営業時間：" + str_operetion_time)
+            if operetion_time_line_cnt != 0:
+                for num in range(len(str_operetion_time_after)):
+                    print("　　　　：" + str_operetion_time_after[num])
             print("郵便番号：" + address_number)
-            print("住所：" + address_place)
+            print("住所　　：" + address_place)
             if moved_flg == 1: 
                 print("移転情報：" + moved_info)
             print("電話番号：" + elems_detail[num_detail].find(itemprop='telephone').text)
